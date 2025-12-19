@@ -1,5 +1,5 @@
 import express from 'express'
-import cheerio from 'cheerio'
+import { load } from 'cheerio'
 
 const app = express()
 
@@ -15,22 +15,25 @@ app.get('/player/:type/:id', async (req, res) => {
     })
 
     let html = await response.text()
-    const $ = cheerio.load(html)
+    const $ = load(html)
 
+    // 🔥 Remove scripts maliciosos
     $('script').each((_, el) => {
       const content = $(el).html() || ''
       const src = $(el).attr('src') || ''
-      if (/ads|pop|redirect|open|location/i.test(content + src)) {
+      if (/ads|pop|redirect|open|location|doubleclick/i.test(content + src)) {
         $(el).remove()
       }
     })
 
-    $('a[target=\"_blank\"]').removeAttr('target')
+    // 🔥 Neutraliza links e cliques
+    $('a[target="_blank"]').removeAttr('target')
     $('[onclick]').removeAttr('onclick')
 
     res.setHeader('Content-Type', 'text/html')
     res.send($.html())
-  } catch (e) {
+  } catch (err) {
+    console.error(err)
     res.status(500).send('Erro no proxy')
   }
 })
