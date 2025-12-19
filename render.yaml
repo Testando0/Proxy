@@ -1,0 +1,3 @@
+services:
+
+type: web name: proxy-player env: node plan: free buildCommand: npm install startCommand: npm start
